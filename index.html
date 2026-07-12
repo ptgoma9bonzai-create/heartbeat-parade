@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#080b20">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <title>HEARTBEAT PARADE</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="game-shell">
+    <header>
+      <div><span>SCORE</span><strong id="score">000000</strong></div>
+      <h1>HEARTBEAT PARADE</h1>
+      <div><span>COMBO</span><strong id="combo">× 001</strong></div>
+    </header>
+
+    <div class="canvas-wrap">
+      <canvas id="game" width="480" height="720" aria-label="縦スクロールシューティングゲーム"></canvas>
+      <section id="overlay" class="overlay">
+        <p class="eyebrow">A TINY STORY OF STARS</p>
+        <h2 id="overlay-title">HEARTBEAT<br>PARADE</h2>
+        <p id="overlay-message">別れを集めて、夜明けを取り戻そう。</p>
+        <button id="start-button" type="button">はじめる</button>
+        <p class="controls">画面を指でなぞって移動・自動射撃<br>右下のBOMBで必殺技</p>
+      </section>
+      <button id="bomb-button" class="bomb-button" type="button" aria-label="ボムを使う">BOMB</button>
+    </div>
+
+    <footer>
+      <span id="stage-label">STAGE 1</span>
+      <span id="status-label">♥♥♥　BOMB ●●●</span>
+    </footer>
+  </main>
+  <script src="game.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      addEventListener("load", () => navigator.serviceWorker.register("./sw.js"));
+    }
+  </script>
+</body>
+</html>

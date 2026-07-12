@@ -1,0 +1,19 @@
+{
+  "name": "HEARTBEAT PARADE",
+  "short_name": "HEARTBEAT",
+  "description": "別れを集めて夜明けを取り戻す、ハートフル弾幕シューティング。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07091a",
+  "theme_color": "#080b20",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
