@@ -30,15 +30,15 @@ body {
 }
 
 .game-shell {
-  width: min(100vw, 520px);
+  width: min(100vw, 600px);
   height: 100dvh;
   display: grid;
-  grid-template-rows: 38px minmax(0, 1fr) 30px;
+  grid-template-rows: 32px minmax(0, 1fr) 24px;
   padding:
-    max(4px, env(safe-area-inset-top))
-    max(8px, env(safe-area-inset-right))
-    max(4px, env(safe-area-inset-bottom))
-    max(8px, env(safe-area-inset-left));
+    max(2px, env(safe-area-inset-top))
+    max(2px, env(safe-area-inset-right))
+    max(2px, env(safe-area-inset-bottom))
+    max(2px, env(safe-area-inset-left));
 }
 
 header, footer {
@@ -61,7 +61,7 @@ h1 { margin: 0; color: var(--cyan); font-size: 12px; letter-spacing: .18em; text
   aspect-ratio: 2 / 3;
   justify-self: center;
   align-self: center;
-  width: min(100%, calc((100dvh - 76px) * 2 / 3));
+  width: min(100%, calc((100dvh - 58px) * 2 / 3));
   height: auto;
   max-height: 100%;
   border: 1px solid #61f5ff66;
@@ -140,7 +140,7 @@ footer { padding-inline: 4px; }
 .bomb-button:active { transform: scale(.9); filter: brightness(1.25); }
 
 @media (min-width: 700px) and (pointer: fine) {
-  .game-shell { height: min(100dvh, 820px); padding: 10px 20px; }
+  .game-shell { height: min(100dvh, 900px); padding: 8px 16px; }
   .bomb-button { opacity: .72; }
 }
 
