@@ -1,4 +1,4 @@
-const CACHE = "heartbeat-parade-v2";
+const CACHE = "heartbeat-parade-v3";
 const APP = [
   "./",
   "./index.html",
