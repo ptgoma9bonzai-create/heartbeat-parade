@@ -148,6 +148,7 @@ footer { padding-inline: 4px; }
   letter-spacing: .06em;
   touch-action: manipulation;
 }
+.bomb-button { display: none !important; }
 .bomb-button:active { transform: scale(.9); filter: brightness(1.25); }
 
 @media (pointer: coarse) {
