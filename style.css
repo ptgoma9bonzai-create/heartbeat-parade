@@ -60,7 +60,7 @@ h1 { margin: 0; color: var(--cyan); font-size: 12px; letter-spacing: .18em; text
   min-height: 0;
   aspect-ratio: 2 / 3;
   justify-self: center;
-  align-self: center;
+  align-self: start;
   width: min(100%, calc((100dvh - 58px) * 2 / 3));
   height: auto;
   max-height: 100%;
@@ -156,6 +156,7 @@ footer { padding-inline: 4px; }
 
 @media (min-width: 700px) and (pointer: fine) {
   .game-shell { height: min(100dvh, 900px); padding: 8px 16px; }
+  .canvas-wrap { align-self: center; }
   .bomb-button { opacity: .72; }
 }
 
