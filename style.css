@@ -86,7 +86,7 @@ canvas {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 14px;
   text-align: center;
   background: linear-gradient(#07102aaa, #09091af2);
   transition: opacity .25s;
@@ -95,7 +95,7 @@ canvas {
 .overlay.hidden { opacity: 0; pointer-events: none; }
 .eyebrow { color: var(--cyan); letter-spacing: .2em; font: 10px monospace; }
 .overlay h2 {
-  margin: 8px 0;
+  margin: 5px 0;
   color: #fff;
   font-size: clamp(42px, 13vw, 70px);
   line-height: .84;
@@ -103,10 +103,21 @@ canvas {
   letter-spacing: -.06em;
   text-shadow: 4px 4px 0 #ff286f, -3px -2px 0 #20ddea;
 }
-.overlay p { color: #b4bddc; }
+.overlay p { color: #b4bddc; margin: 6px 0; }
+
+.game-select { width: min(100%, 390px); display: grid; gap: 7px; margin-top: 5px; }
+.select-group { display: grid; grid-template-columns: 58px repeat(3, 1fr); gap: 5px; align-items: stretch; }
+.select-group b { align-self: center; color: #8df7ff; font: 800 9px monospace; letter-spacing: .1em; }
+.select {
+  min-width: 0; padding: 7px 3px; border: 1px solid #ffffff42; border-radius: 9px;
+  color: #dbe2ff; background: #171b3dcc; font: 800 10px sans-serif;
+}
+.select small { font-size: 8px; font-weight: 500; opacity: .72; }
+.select.active { color: #15132c; border-color: #fff; background: linear-gradient(135deg,#fff39a,#7cf5ff); box-shadow: 0 0 13px #61f5ff77; }
+.game-select.locked { display: none; }
 
 #start-button {
-  margin: 16px 0 10px;
+  margin: 9px 0 4px;
   padding: 14px 34px;
   min-height: 48px;
   color: #041018;
