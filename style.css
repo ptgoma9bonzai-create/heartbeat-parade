@@ -106,7 +106,9 @@ canvas {
 .overlay p { color: #b4bddc; margin: 6px 0; }
 
 .game-select { width: min(100%, 390px); display: grid; gap: 7px; margin-top: 5px; }
-.select-group { display: grid; grid-template-columns: 58px repeat(3, 1fr); gap: 5px; align-items: stretch; }
+.select-group { display: grid; grid-template-columns: 52px repeat(3, 1fr); gap: 4px; align-items: stretch; }
+.select-group.hell-unlocked { grid-template-columns: 52px repeat(4, 1fr); }
+.select-group.ships { grid-template-columns: 58px repeat(3, 1fr); gap: 5px; }
 .select-group b { align-self: center; color: #8df7ff; font: 800 9px monospace; letter-spacing: .1em; }
 .select {
   min-width: 0; padding: 7px 3px; border: 1px solid #ffffff42; border-radius: 9px;
@@ -114,6 +116,11 @@ canvas {
 }
 .select small { font-size: 8px; font-weight: 500; opacity: .72; }
 .select.active { color: #15132c; border-color: #fff; background: linear-gradient(135deg,#fff39a,#7cf5ff); box-shadow: 0 0 13px #61f5ff77; }
+.select.hell { color: #ff9aab; border-color: #ff365d88; background: #260817dd; }
+.select.hell.active { color: #fff; background: linear-gradient(135deg,#ff274f,#54115f); box-shadow: 0 0 17px #ff315eaa; }
+.select[hidden] { display: none !important; }
+.stage6-retry { padding: 9px 12px; border: 1px solid #63f7ffaa; border-radius: 10px; color: #fff; background: linear-gradient(135deg,#071525dd,#391052dd); font: 900 10px sans-serif; letter-spacing: .05em; box-shadow: inset 0 0 18px #63f7ff22,0 0 14px #ff4bd833; }
+.stage6-retry[hidden] { display: none !important; }
 .game-select.locked { display: none; }
 
 #start-button {
