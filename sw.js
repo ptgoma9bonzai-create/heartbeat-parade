@@ -1,9 +1,9 @@
-const CACHE = "heartbeat-parade-v16";
+const CACHE = "heartbeat-parade-v17";
 const APP = [
   "./",
   "./index.html",
   "./style.css",
-  "./game.js",
+  "./game.js?v=17",
   "./manifest.webmanifest",
   "./icon.svg"
 ];
@@ -25,12 +25,12 @@ self.addEventListener("activate", event => {
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
   event.respondWith(
-    caches.match(event.request).then(cached =>
-      cached || fetch(event.request).then(response => {
+    fetch(event.request).then(response => {
+      if (response.ok) {
         const copy = response.clone();
         caches.open(CACHE).then(cache => cache.put(event.request, copy));
-        return response;
-      })
-    )
+      }
+      return response;
+    }).catch(() => caches.match(event.request))
   );
 });
