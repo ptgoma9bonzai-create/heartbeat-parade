@@ -33,7 +33,7 @@ body {
   width: min(100vw, 600px);
   height: 100dvh;
   display: grid;
-  grid-template-rows: 32px 34px minmax(0, 1fr) 24px;
+  grid-template-rows: 54px minmax(0, 1fr) 22px;
   padding:
     max(2px, env(safe-area-inset-top))
     max(2px, env(safe-area-inset-right))
@@ -42,35 +42,34 @@ body {
 }
 
 header, footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   color: #8f9ac2;
   letter-spacing: .12em;
   font-size: 9px;
 }
 
-header div { display: grid; min-width: 82px; }
-header div:last-child { text-align: right; }
-header strong { color: #fff; font: 700 17px/1 monospace; letter-spacing: .06em; }
+header.top-hud { display: grid; grid-template-rows: 24px 28px; gap: 2px; min-width: 0; }
+.headline { display: flex; justify-content: space-between; align-items: center; min-width: 0; }
+.headline > div { display: grid; min-width: 78px; }
+.headline > div:last-child { text-align: right; }
+.headline strong { color: #fff; font: 700 16px/1 monospace; letter-spacing: .06em; }
 h1 { margin: 0; color: var(--cyan); font-size: 12px; letter-spacing: .18em; text-shadow: 0 0 15px #41f4ffaa; }
 
 .loadout-hud {
   min-width: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 7px;
-  padding: 3px 8px;
+  gap: 10px;
+  padding: 2px 8px;
   border: 1px solid #61f5ff35;
-  border-radius: 8px 8px 3px 3px;
+  border-radius: 7px 7px 3px 3px;
   color: #dce5ff;
   background: linear-gradient(90deg,#101735e8,#201338e8,#0c2033e8);
   box-shadow: inset 0 0 18px #61f5ff0d;
   font: 800 9px/1.2 monospace;
   letter-spacing: .035em;
 }
-.weapon-ranks, .stock-status { display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+.weapon-ranks, .stock-status { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
 .stock-status { justify-content: flex-end; }
 .loadout-hud b { font-size: 12px; }
 .shot-rank { color: #fff3a6; }
@@ -80,13 +79,17 @@ h1 { margin: 0; color: var(--cyan); font-size: 12px; letter-spacing: .18em; text
 #bomb-stock { color: #fff1a6; letter-spacing: 0; }
 .special-status { color: #c9f8ff; text-align: center; white-space: nowrap; }
 
+footer { display: grid; grid-template-columns: minmax(0,1fr) auto auto; align-items: center; gap: 8px; }
+#stage-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#status-label { white-space: nowrap; }
+
 .canvas-wrap {
   position: relative;
   min-height: 0;
   aspect-ratio: 2 / 3;
   justify-self: center;
   align-self: start;
-  width: min(100%, calc((100dvh - 92px) * 2 / 3));
+  width: min(100%, calc((100dvh - 80px) * 2 / 3));
   height: auto;
   max-height: 100%;
   border: 1px solid #61f5ff66;
@@ -197,12 +200,13 @@ footer { padding-inline: 4px; }
 }
 
 @media (max-width: 390px), (max-height: 700px) {
-  .game-shell { grid-template-rows: 32px 32px minmax(0, 1fr) 24px; }
-  header strong { font-size: 15px; }
+  .game-shell { grid-template-rows: 50px minmax(0, 1fr) 22px; }
+  header.top-hud { grid-template-rows: 22px 26px; }
+  .headline strong { font-size: 14px; }
   h1 { font-size: 10px; }
-  .loadout-hud { gap: 4px; padding-inline: 5px; font-size: 8px; }
-  .weapon-ranks, .stock-status { gap: 4px; }
+  .loadout-hud { gap: 6px; padding-inline: 6px; font-size: 8px; }
+  .weapon-ranks, .stock-status { gap: 7px; }
   .loadout-hud b { font-size: 10px; }
   .bomb-button { width: 56px; height: 56px; right: 9px; bottom: 44px; }
-  footer { font-size: 8px; }
+  footer { gap: 5px; font-size: 7px; }
 }

@@ -10,28 +10,28 @@
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon.svg">
   <title>HEARTBEAT PARADE</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=22">
 </head>
 <body>
   <main class="game-shell">
-    <header>
-      <div><span>SCORE</span><strong id="score">000000</strong></div>
-      <h1>HEARTBEAT PARADE</h1>
-      <div><span>COMBO</span><strong id="combo">× 001</strong></div>
+    <header class="top-hud">
+      <div class="headline">
+        <div><span>SCORE</span><strong id="score">000000</strong></div>
+        <h1>HEARTBEAT PARADE</h1>
+        <div><span>COMBO</span><strong id="combo">× 001</strong></div>
+      </div>
+      <section class="loadout-hud" aria-label="武器と残機の状態">
+        <div class="weapon-ranks">
+          <span class="shot-rank">S <b id="shot-rank">1</b></span>
+          <span class="laser-rank">L <b id="laser-rank">0</b></span>
+          <span class="missile-rank">M <b id="missile-rank">0</b></span>
+        </div>
+        <div class="stock-status">
+          <span>LIFE <b id="life-stock">♥♥♥♥♥</b></span>
+          <span>BOMB <b id="bomb-stock">●●●○○</b></span>
+        </div>
+      </section>
     </header>
-
-    <section class="loadout-hud" aria-label="武器と残機の状態">
-      <div class="weapon-ranks">
-        <span class="shot-rank">SHOT <b id="shot-rank">1</b></span>
-        <span class="laser-rank">LASER <b id="laser-rank">0</b></span>
-        <span class="missile-rank">MISSILE <b id="missile-rank">0</b></span>
-      </div>
-      <span id="special-status" class="special-status">FNL 1/999</span>
-      <div class="stock-status">
-        <span>LIFE <b id="life-stock">♥♥♥♥♥</b></span>
-        <span>BOMB <b id="bomb-stock">●●●○○</b></span>
-      </div>
-    </section>
 
     <div class="canvas-wrap">
       <canvas id="game" width="480" height="720" aria-label="縦スクロールシューティングゲーム"></canvas>
@@ -55,10 +55,11 @@
 
     <footer>
       <span id="stage-label">STAGE 1</span>
-      <span id="status-label">CONTINUE 0/2</span>
+      <span id="special-status" class="special-status">FNL 1/999</span>
+      <span id="status-label">C 0/2</span>
     </footer>
   </main>
-  <script src="game.js?v=21"></script>
+  <script src="game.js?v=22"></script>
   <script>
     if ("serviceWorker" in navigator) {
       addEventListener("load", async () => {
