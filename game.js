@@ -134,7 +134,7 @@ function addMidBoss(){
  tone(196,.35,'sawtooth',.03);
 }
 function addBoss(){
- const hp=[520,760,900,1100,1750,2200][stage]*diff().bossHp,r=[66,72,78,86,112,176][stage];bossMade=true;beat=0;enemyShots=[];beamFx=[];deathBorder=null;
+ const hp=[520,760,900,1100,1750,2200][stage]*diff().bossHp,r=[66,72,78,86,112,176][stage];bossMade=true;beat=0;enemyShots=[];traps=[];mineLines=[];trapClock=999;beamFx=[];deathBorder=null;
  if(stage===5){const main={x:W/2,y:-r-20,r:56,visualR:r,hp,max:hp,v:48,phase:0,shoot:.8,shieldCd:5.2,type:'boss',bossId:5,name:'GHOSTBEAST',phase2:false,attackCycle:0,worth:52000},sideHp=460*diff().bossHp;enemies.push(main);for(const side of [-1,1])enemies.push({x:W/2+side*116,y:-r,r:39,hp:sideHp,max:sideHp,v:0,phase:side<0?0:Math.PI,shoot:.7,type:'bossPart',side,parent:main,worth:8500});callouts.push({x:W/2,y:105,text:'TRUE LAST BOSS — GHOSTBEAST',life:4,color:'#ffef78'})}
  else enemies.push({x:W/2,y:-r-20,r,hp,max:hp,v:45,phase:0,shoot:1,shieldCd:5.6,type:'boss',bossId:stage,worth:8000+stage*5000});banner=3;tone(stage===5?72:130,stage===5?1.3:.8,'sawtooth',stage===5?.06:.04);
 }
@@ -170,6 +170,7 @@ function updateMineLines(dt){
  const interval={easy:.96,normal:.8,hard:.68,hell:.58}[selectedDifficulty],step={easy:60,normal:56,hard:52,hell:48}[selectedDifficulty],speed=(148+stage*7)*Math.min(1.2,diff().speed),cap=bulletLimit();for(const m of mineLines){m.tick-=dt;if(m.tick>0||m.waves>=m.maxWaves)continue;m.tick=interval;m.waves++;const offset=m.waves%2*step*.5;for(let x=-10+offset;x<W+10&&enemyShots.length<cap;x+=step){if(Math.abs(x-m.gap)<m.width)continue;enemyShots.push({x,y:-9,r:4.8,vx:Math.sin((x+m.waves*17)*.04)*6,vy:speed,color:'#e4b96f',kind:'mineLine',trail:[],noTrail:true})}}mineLines=mineLines.filter(m=>m.waves<m.maxWaves);
 }
 function updateTraps(dt){
+ if(bossMade){if(traps.length)traps=[];if(mineLines.length)mineLines=[];return}
  trapClock-=dt;if(trapClock<=0){addMineBarrier();const base=selectedDifficulty==='hell'?(bossMade?5.8:R(4.8,6.4)):bossMade?10.5:R(7.5,10),travel=(H+60)/((48+stage*7)*diff().speed);trapClock=Math.min(base,travel*.68)}for(const t of traps){t.y+=t.vy*dt;t.phase+=dt*(t.kind==='vortex'?4.4:2.4);if(t.kind==='vortex'){t.x=clamp(t.x+Math.sin(t.phase)*16*dt,28,W-28);const dx=t.x-player.x,dy=t.y-player.y,d=Math.hypot(dx,dy);if(d<155&&d>20){const pull=(155-d)/155*72;player.x=clamp(player.x+dx/d*pull*dt,18,W-18);player.y=clamp(player.y+dy/d*pull*dt,28,H-22)}}if(!t.dead&&hit(player,t)){t.dead=true;callouts.push({x:player.x,y:player.y-42,text:t.kind==='vortex'?'GRAVITY LOCK!':'CAPTURED!',life:1.5,color:'#ff6b62'});burst(t.x,t.y,t.kind==='vortex'?'#ff5bd1':'#ff765c',30);damage()}}traps=traps.filter(t=>!t.dead&&t.y<H+35);updateMineLines(dt);
 }
 function enemyFire(e){
