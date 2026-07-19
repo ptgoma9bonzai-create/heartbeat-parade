@@ -1,7 +1,7 @@
 (() => {
 'use strict';
 const c=document.querySelector('#game'),g=c.getContext('2d'),W=480,H=720,PHONE_RENDER=(window.matchMedia?.('(pointer:coarse)').matches||window.innerWidth<760),RENDER_SCALE=Math.min(PHONE_RENDER?1.5:2,Math.max(1,window.devicePixelRatio||1));c.width=W*RENDER_SCALE;c.height=H*RENDER_SCALE;g.setTransform(RENDER_SCALE,0,0,RENDER_SCALE,0,0);
-const $=s=>document.querySelector(s),scoreEl=$('#score'),comboEl=$('#combo'),stageEl=$('#stage-label'),statusEl=$('#status-label'),over=$('#overlay'),title=$('#overlay-title'),msg=$('#overlay-message'),btn=$('#start-button'),bombBtn=$('#bomb-button'),gameSelect=$('#game-select'),hellBtn=$('#hell-mode'),stage6Btn=$('#stage6-retry');
+const $=s=>document.querySelector(s),scoreEl=$('#score'),comboEl=$('#combo'),stageEl=$('#stage-label'),statusEl=$('#status-label'),shotRankEl=$('#shot-rank'),laserRankEl=$('#laser-rank'),missileRankEl=$('#missile-rank'),lifeStockEl=$('#life-stock'),bombStockEl=$('#bomb-stock'),specialStatusEl=$('#special-status'),over=$('#overlay'),title=$('#overlay-title'),msg=$('#overlay-message'),btn=$('#start-button'),endBtn=$('#end-button'),bombBtn=$('#bomb-button'),gameSelect=$('#game-select'),hellBtn=$('#hell-mode'),stage6Btn=$('#stage6-retry');
 const key=new Set(),R=(a,b)=>Math.random()*(b-a)+a,clamp=(n,a,b)=>Math.max(a,Math.min(b,n)),hit=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y)<(a.r+b.r),pad=n=>String(Math.floor(n)).padStart(6,'0');
 const STAGES=[
  {name:'さよなら色の丘',sky:['#ffd0dc','#8dbbe9','#4b4779'],accent:'#ff5f89',bullet:'#ffef54',boss:'泣き虫くじら',story:'なくした手紙が、風のなかで呼んでいる。'},
@@ -14,14 +14,14 @@ const STAGES=[
 let mode='title',last=0,time=0,stage=0,stageTime=0,score=0,combo=1,comboClock=0,spawnClock=0,bossMade=false,midBossMade=false,banner=0,flash=0,shake=0,pointer=false,activePointer=null,dragX=0,dragY=0,finaleTime=0,finalBoss=null,trueEnding=false,bombDrops=0,lastHitSound=0,lastShieldSound=0,lastTapTime=0,lastTapX=0,lastTapY=0;
 const activeTouches=new Set();
 let player,shots=[],enemies=[],enemyShots=[],particles=[],notes=[],items=[],traps=[],mineLines=[],callouts=[],beamFx=[],deathBorder=null,bossShield=null,bombFx=null,selectedDifficulty='normal',selectedShip='clione',lastHudState='';
-let trapClock=5,skillDodges=0,hellUnlocked=false,stage6Unlocked=false,stage6Checkpoint=null;
-const MAX_PARTICLES=260,MAX_NOTES=72,MAX_CALLOUTS=20,bulletLimit=()=>Math.min({easy:240,normal:300,hard:360,hell:440}[selectedDifficulty]||300,PHONE_RENDER?380:480);
+let trapClock=5,skillDodges=0,hellUnlocked=false,stage6Unlocked=false,stage6Checkpoint=null,stageCheckpoint=null,continueLoadout=null,continuesUsed=0;
+const MAX_PARTICLES=260,MAX_NOTES=72,MAX_CALLOUTS=20,MAX_CONTINUES=2,bulletLimit=()=>Math.min({easy:240,normal:300,hard:330,hell:440}[selectedDifficulty]||300,PHONE_RENDER?380:480);
 try{hellUnlocked=localStorage.getItem('heartbeat-hell')==='1'}catch(_){}
 try{stage6Unlocked=localStorage.getItem('heartbeat-stage6')==='1';stage6Checkpoint=JSON.parse(localStorage.getItem('heartbeat-stage6-checkpoint')||'null')}catch(_){}
 const DIFFICULTIES={
  easy:{label:'EASY',enemy:.9,bullets:1.05,speed:.88,hp:1.12,bossHp:1,fire:.9,drops:{weapon:.9,bomb:.012,heal:.02,star:.025}},
  normal:{label:'NORMAL',enemy:1,bullets:1.3,speed:1,hp:1.3,bossHp:1.3,fire:1,drops:{weapon:.72,bomb:.006,heal:.012,star:.015}},
- hard:{label:'HARD',enemy:1.28,bullets:1.55,speed:1.18,hp:1.55,bossHp:1.65,fire:1.22,drops:{weapon:.5,bomb:.0025,heal:.005,star:.007}},
+ hard:{label:'HARD',enemy:1.12,bullets:1.34,speed:1.1,hp:1.45,bossHp:1.55,fire:1.12,drops:{weapon:.5,bomb:.0025,heal:.005,star:.007}},
  hell:{label:'HELL',enemy:1.6,bullets:2.15,speed:1.33,hp:2,bossHp:2.05,fire:1.55,drops:{weapon:.35,bomb:.001,heal:.002,star:.0035}}
 };
 const SHIPS={clione:{name:'ルミ',speed:1,damage:1,rate:1,bomb:'クイック・ハート'},ribbon:{name:'メルティ',speed:1.52,damage:.82,rate:.76,bomb:'くまちゃんパレード'},hammer:{name:'ガンガ',speed:.56,damage:1.42,rate:1.18,bomb:'コズミック・ナパーム'}};
@@ -56,22 +56,34 @@ function musicStart(){
   else{const f=melody[beat++%melody.length];tone(f,.22,'triangle',.026);if(beat%4===1)tone(f/2,.3,'sine',.018)}
  },190);
 }
-function reset(){
- time=stageTime=score=0;stage=0;combo=1;comboClock=0;spawnClock=.7;trapClock=5;skillDodges=0;bossMade=false;midBossMade=false;bombDrops=0;finaleTime=0;finalBoss=null;trueEnding=false;bossShield=null;bombFx=null;deathBorder=null;beamFx=[];shots=[];enemies=[];enemyShots=[];particles=[];notes=[];items=[];traps=[];mineLines=[];callouts=[];lastHudState='';
- player={x:W/2,y:H-90,r:3.5,hp:5,bombs:3,cd:0,laserCd:0,missileCd:0,inv:1,power:0,starBombReady:false,trail:[],drones:[],droneCd:0,funnelGauge:1,levels:{shot:1,laser:0,missile:0}};
- hud();banner=2.3;
+function captureStageCheckpoint(){
+ stageCheckpoint={stage,score,bombs:player.bombs,levels:{...player.levels},funnelGauge:player.funnelGauge,skillDodges};
 }
-function launchPlay(){mode='play';gameSelect.classList.add('locked');over.classList.add('hidden');musicStart()}
+function showContinue(loadout){
+ if(continuesUsed>=MAX_CONTINUES){gameOver();return}mode='continue';continueLoadout=loadout;pointer=false;activePointer=null;activeTouches.clear();key.clear();clearInterval(musicTimer);title.innerHTML='CONTINUE?';msg.innerHTML='STAGE '+(stage+1)+'「'+STAGES[stage].name+'」を最初から再開<br>残りコンティニュー '+(MAX_CONTINUES-continuesUsed)+' 回';btn.textContent='生還: Try Again';endBtn.hidden=false;gameSelect.classList.add('locked');over.classList.remove('hidden');
+}
+function continueGame(){
+ if(mode!=='continue'||!stageCheckpoint)return;continuesUsed++;const cp=stageCheckpoint,loadout=continueLoadout||cp;stage=cp.stage;score=cp.score;stageTime=0;combo=1;comboClock=0;spawnClock=stage===5?.5:.7;trapClock=stage===5?4:5;skillDodges=cp.skillDodges||0;bossMade=false;midBossMade=false;bombDrops=0;beat=0;bossShield=null;bombFx=null;deathBorder=null;beamFx=[];shots=[];enemies=[];enemyShots=[];particles=[];notes=[];items=[];traps=[];mineLines=[];callouts=[];lastHudState='';player={x:W/2,y:H-90,r:3.5,hp:5,bombs:Math.min(5,Math.max(3,loadout.bombs||0)),cd:0,laserCd:0,missileCd:0,inv:2,power:0,starBombReady:false,trail:[],drones:[],droneCd:0,funnelGauge:Math.max(cp.funnelGauge||1,loadout.funnelGauge||1),levels:{...loadout.levels}};continueLoadout=null;banner=2.5;callouts.push({x:W/2,y:118,text:'CONTINUE '+continuesUsed+'/'+MAX_CONTINUES,life:2.2,color:'#8ffaff'});hud();launchPlay();
+}
+function endContinue(){
+ continueLoadout=null;endBtn.hidden=true;gameOver();
+}
+function reset(){
+ time=stageTime=score=0;stage=0;combo=1;comboClock=0;spawnClock=.7;trapClock=5;skillDodges=0;bossMade=false;midBossMade=false;bombDrops=0;finaleTime=0;finalBoss=null;trueEnding=false;bossShield=null;bombFx=null;deathBorder=null;beamFx=[];shots=[];enemies=[];enemyShots=[];particles=[];notes=[];items=[];traps=[];mineLines=[];callouts=[];lastHudState='';continuesUsed=0;continueLoadout=null;stageCheckpoint=null;endBtn.hidden=true;
+ player={x:W/2,y:H-90,r:3.5,hp:5,bombs:3,cd:0,laserCd:0,missileCd:0,inv:1,power:0,starBombReady:false,trail:[],drones:[],droneCd:0,funnelGauge:1,levels:{shot:1,laser:0,missile:0}};
+ captureStageCheckpoint();hud();banner=2.3;
+}
+function launchPlay(){mode='play';endBtn.hidden=true;gameSelect.classList.add('locked');over.classList.add('hidden');musicStart()}
 function start(){reset();launchPlay()}
 function saveStage6Checkpoint(){
  stage6Unlocked=true;stage6Checkpoint={ship:selectedShip,hp:player.hp,bombs:Math.min(5,player.bombs+1),levels:{...player.levels}};stage6Btn.hidden=false;try{localStorage.setItem('heartbeat-stage6','1');localStorage.setItem('heartbeat-stage6-checkpoint',JSON.stringify(stage6Checkpoint))}catch(_){}
 }
 function startStage6(){
- selectedDifficulty='hell';if(stage6Checkpoint?.ship&&SHIPS[stage6Checkpoint.ship])selectedShip=stage6Checkpoint.ship;document.querySelectorAll('[data-difficulty]').forEach(x=>x.classList.toggle('active',x.dataset.difficulty==='hell'));document.querySelectorAll('[data-ship]').forEach(x=>x.classList.toggle('active',x.dataset.ship===selectedShip));reset();stage=5;spawnClock=.5;trapClock=4;player.hp=Math.max(3,Math.min(5,stage6Checkpoint?.hp||3));player.bombs=Math.max(2,Math.min(5,stage6Checkpoint?.bombs||2));for(const k of ['shot','laser','missile'])player.levels[k]=clamp(stage6Checkpoint?.levels?.[k]??(k==='shot'?3:2),k==='shot'?1:0,3);banner=3;hud();launchPlay();
+ selectedDifficulty='hell';if(stage6Checkpoint?.ship&&SHIPS[stage6Checkpoint.ship])selectedShip=stage6Checkpoint.ship;document.querySelectorAll('[data-difficulty]').forEach(x=>x.classList.toggle('active',x.dataset.difficulty==='hell'));document.querySelectorAll('[data-ship]').forEach(x=>x.classList.toggle('active',x.dataset.ship===selectedShip));reset();stage=5;spawnClock=.5;trapClock=4;player.hp=Math.max(3,Math.min(5,stage6Checkpoint?.hp||3));player.bombs=Math.max(2,Math.min(5,stage6Checkpoint?.bombs||2));for(const k of ['shot','laser','missile'])player.levels[k]=clamp(stage6Checkpoint?.levels?.[k]??(k==='shot'?3:2),k==='shot'?1:0,3);captureStageCheckpoint();banner=3;hud();launchPlay();
 }
-function hud(){const state=[Math.floor(score),combo,stage,selectedDifficulty,selectedShip,player.hp,player.bombs,player.levels.shot,player.levels.laser,player.levels.missile].join('|');if(state===lastHudState)return;lastHudState=state;scoreEl.textContent=pad(score);comboEl.textContent='× '+String(combo).padStart(3,'0');stageEl.textContent=diff().label+'・'+ship().name+'　STAGE '+(stage+1)+'　'+STAGES[stage].name;statusEl.textContent='♥'.repeat(player.hp)+'♡'.repeat(5-player.hp)+'　BOMB '+'●'.repeat(player.bombs)+'○'.repeat(5-player.bombs)}
+function hud(){const state=[Math.floor(score),combo,stage,selectedDifficulty,selectedShip,player.hp,player.bombs,player.levels.shot,player.levels.laser,player.levels.missile,Math.ceil(player.power*10),player.starBombReady,Math.floor(player.funnelGauge),player.drones.length,skillDodges,continuesUsed].join('|');if(state===lastHudState)return;lastHudState=state;scoreEl.textContent=pad(score);comboEl.textContent='× '+String(combo).padStart(3,'0');stageEl.textContent=diff().label+'・'+ship().name+'　STAGE '+(stage+1)+'　'+STAGES[stage].name;statusEl.textContent='CONTINUE '+continuesUsed+'/'+MAX_CONTINUES;shotRankEl.textContent=player.levels.shot;laserRankEl.textContent=player.levels.laser;missileRankEl.textContent=player.levels.missile;lifeStockEl.textContent='♥'.repeat(player.hp)+'♡'.repeat(5-player.hp);bombStockEl.textContent='●'.repeat(player.bombs)+'○'.repeat(5-player.bombs);specialStatusEl.textContent=player.power>0?'★ STAR '+player.power.toFixed(1)+(player.starBombReady?' / BOMB×1.5':''):player.drones.length?'FNL ACTIVE':'FNL '+Math.min(999,Math.floor(player.funnelGauge))+'/999'+(skillDodges?' / BREAK '+skillDodges:'')}
 function gameOver(clear=false){
- mode='over';clearInterval(musicTimer);title.innerHTML=clear?'THE END<br>また会う日まで':'DREAM<br>OVER';msg.textContent=clear?'小さな星は、朝を見つけました。':'スコア '+pad(score);btn.textContent=clear?'もう一度':'リトライ';gameSelect.classList.remove('locked');over.classList.remove('hidden');
+ mode='over';clearInterval(musicTimer);endBtn.hidden=true;title.innerHTML=clear?'THE END<br>また会う日まで':'DREAM<br>OVER';msg.textContent=clear?'小さな星は、朝を見つけました。':'スコア '+pad(score);btn.textContent=clear?'もう一度':'リトライ';gameSelect.classList.remove('locked');over.classList.remove('hidden');
 }
 function unlockHell(){
  if(hellUnlocked)return;hellUnlocked=true;hellBtn.hidden=false;hellBtn.parentElement.classList.add('hell-unlocked');try{localStorage.setItem('heartbeat-hell','1')}catch(_){}callouts.push({x:W/2,y:92,text:'HELL MODE UNLOCKED',life:5,color:'#ff527f'});
@@ -82,12 +94,12 @@ function beginFinale(e,isTrue=false){
  tone(110,1.8,'sawtooth',.055);
 }
 function showEnding(){
- mode='ending';title.innerHTML=trueEnding?'HEARTFUL<br>PARADE':'MORNING<br>FOUND';msg.innerHTML=trueEnding?'宇宙将軍は恒星の光へほどけ、宇宙はHEARTFUL PARADEを取り戻した。<br>奇跡の星々が満開の天の川となり、あなたの軌跡を永遠に照らしている。<br><br>TRUE END　SCORE '+pad(score):'夜は消えず、朝の居場所になった。<br>ノクスは最後に笑い、小さな星へ姿を変えた。<br><br>「さよならは、また会うための光。」<br><br>SCORE '+pad(score);btn.textContent=trueEnding?'銀河をもう一度':'物語をもう一度';gameSelect.classList.remove('locked');over.classList.remove('hidden');
+ mode='ending';endBtn.hidden=true;title.innerHTML=trueEnding?'HEARTFUL<br>PARADE':'MORNING<br>FOUND';msg.innerHTML=trueEnding?'宇宙将軍は恒星の光へほどけ、宇宙はHEARTFUL PARADEを取り戻した。<br>奇跡の星々が満開の天の川となり、あなたの軌跡を永遠に照らしている。<br><br>TRUE END　SCORE '+pad(score):'夜は消えず、朝の居場所になった。<br>ノクスは最後に笑い、小さな星へ姿を変えた。<br><br>「さよならは、また会うための光。」<br><br>SCORE '+pad(score);btn.textContent=trueEnding?'銀河をもう一度':'物語をもう一度';gameSelect.classList.remove('locked');over.classList.remove('hidden');
 }
 function resolveBossDefeat(e){
  if(!e||e.resolved)return;e.resolved=true;e.dead=true;for(const part of enemies)if(part.type==='bossPart'&&part.parent===e)part.dead=true;dropItem(e);score+=e.worth*combo;shake=stage===5?38:24;burst(e.x,e.y,STAGES[stage].accent,stage===5?180:90);tone(150,.8,'triangle',.04);
  const lastStage=selectedDifficulty==='hell'?5:4;
- if(stage<lastStage){if(stage===4&&selectedDifficulty==='hell')saveStage6Checkpoint();stage++;stageTime=0;bossMade=false;midBossMade=false;bombDrops=0;beat=0;spawnClock=stage===5?.5:2;trapClock=stage===5?4:5;bossShield=null;deathBorder=null;beamFx=[];traps=[];mineLines=[];player.bombs=Math.min(5,player.bombs+1);enemyShots=[];shots=[];banner=3;hud()}
+ if(stage<lastStage){if(stage===4&&selectedDifficulty==='hell')saveStage6Checkpoint();stage++;stageTime=0;bossMade=false;midBossMade=false;bombDrops=0;beat=0;spawnClock=stage===5?.5:2;trapClock=stage===5?4:5;bossShield=null;deathBorder=null;beamFx=[];traps=[];mineLines=[];player.bombs=Math.min(5,player.bombs+1);enemyShots=[];shots=[];banner=3;captureStageCheckpoint();hud()}
  else{if(selectedDifficulty==='hard')unlockHell();hud();beginFinale(e,stage===5&&selectedDifficulty==='hell')}
 }
 function burst(x,y,color,n=12){n=Math.min(n,MAX_PARTICLES);const overflow=particles.length+n-MAX_PARTICLES;if(overflow>0)particles.splice(0,overflow);while(n--){const a=R(0,7),v=R(40,220);particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,l:R(.3,.9),s:R(2,6),color})}}
@@ -127,7 +139,7 @@ function updateDrones(dt){
  if(player.drones.length&&player.droneCd<=0){const targets=enemies.filter(e=>!e.dead);for(const d of player.drones){const t=targets.reduce((best,e)=>!best||Math.hypot(e.x-d.x,e.y-d.y)<Math.hypot(best.x-d.x,best.y-d.y)?e:best,null);if(t){const a=Math.atan2(t.y-d.y,t.x-d.x);shots.push({x:d.x,y:d.y,r:4,vx:Math.cos(a)*520,vy:Math.sin(a)*520,type:'shot',ship:selectedShip,drone:true,damage:.7*ship().damage})}}player.droneCd=.28}
  if(!player.drones.length&&player.funnelGauge>=999)activateDrones();
 }
-function addEnemy(type=Math.random()<(0.2+stage*.08)?'tough':'small'){
+function addEnemy(type=Math.random()<(0.2+stage*(selectedDifficulty==='hard'?.055:.08))?'tough':'small'){
  if(stage===5)type=Math.random()<.58?'spaceRay':'scrap';
  if(type==='spaceRay'||type==='scrap'){const scrap=type==='scrap',hp=(scrap?24:11)*diff().hp;enemies.push({x:R(50,W-50),y:-42,r:scrap?27:24,hp,max:hp,v:scrap?62:88,phase:R(0,7),shoot:R(.65,1.15),type,hellMove:Math.floor(R(0,3)),worth:scrap?1150:760});return}
  const tough=type==='tough',scale=stage<2?stage:1.4+(stage-2)*.3,hp=tough?10+scale*7:2+scale*2;
@@ -241,7 +253,7 @@ function togglePause(){
  else if(mode==='paused'){mode='play';last=performance.now();over.classList.add('hidden')}
 }
 function damage(){
- if(player.inv>0||player.power>0)return;player.hp--;player.inv=2;player.drones=[];player.levels.shot=Math.max(1,player.levels.shot-1);player.levels.laser=Math.max(0,player.levels.laser-1);player.levels.missile=Math.max(0,player.levels.missile-1);combo=1;comboClock=0;enemyShots=[];shake=15;burst(player.x,player.y,'#fff',30);tone(95,.5,'sawtooth',.05);hud();if(player.hp<=0)gameOver();
+ if(player.inv>0||player.power>0)return;const rescue={bombs:player.bombs,levels:{...player.levels},funnelGauge:player.funnelGauge};player.hp--;player.inv=2;player.drones=[];player.levels.shot=Math.max(1,player.levels.shot-1);player.levels.laser=Math.max(0,player.levels.laser-1);player.levels.missile=Math.max(0,player.levels.missile-1);combo=1;comboClock=0;enemyShots=[];shake=15;burst(player.x,player.y,'#fff',30);tone(95,.5,'sawtooth',.05);hud();if(player.hp<=0)showContinue(rescue);
 }
 function update(dt){
  for(const s of stars){s.y+=s.v*dt;if(s.y>H){s.y=0;s.x=R(0,W)}}
@@ -266,7 +278,7 @@ function update(dt){
  if(player.cd<=0)fireWeapon();
  const midAt=stage===5?7:12,bossAt=stage===5?18:28;
  if(!midBossMade&&stageTime>=midAt)addMidBoss();
- if(!bossMade&&stageTime<bossAt&&(spawnClock-=dt)<=0){addEnemy();spawnClock=stage===5?R(.78,1.08)/diff().enemy:R(.85,1.25)/(1+stage*.22)/diff().enemy}
+ if(!bossMade&&stageTime<bossAt&&(spawnClock-=dt)<=0){addEnemy();const stageGrowth=selectedDifficulty==='hard'?.16:.22;spawnClock=stage===5?R(.78,1.08)/diff().enemy:R(.85,1.25)/(1+stage*stageGrowth)/diff().enemy}
  if(!bossMade&&stageTime>=bossAt&&(stage!==5||!enemies.some(e=>e.type==='midboss'&&!e.dead)))addBoss();
  for(const b of shots){
   if(b.type==='missile'){let target=null,best=Infinity;for(const e of enemies)if(!e.dead){const d=(e.x-b.x)**2+(e.y-b.y)**2;if(d<best){best=d;target=e}}if(target){const a=Math.atan2(target.y-b.y,target.x-b.x);b.vx+=Math.cos(a)*520*dt;b.vy+=Math.sin(a)*520*dt;const sp=Math.hypot(b.vx,b.vy);if(sp>430){b.vx=b.vx/sp*430;b.vy=b.vy/sp*430}}b.life-=dt}
@@ -426,21 +438,13 @@ function draw(){
  for(const n of notes){g.globalAlpha=Math.max(0,1-n.r/650);if(n.kind==='bear'){g.fillStyle='#ffb1d5';g.beginPath();g.arc(n.x-7,n.y-7,7,0,7);g.arc(n.x+7,n.y-7,7,0,7);g.arc(n.x,n.y,14,0,7);g.fill();g.fillStyle='#fff';g.beginPath();g.arc(n.x,n.y+3,7,0,7);g.fill()}else if(n.kind==='napalm'){g.strokeStyle='#ff8a32';g.lineWidth=10;g.beginPath();g.arc(n.x,n.y,n.r,0,7);g.stroke()}else{g.strokeStyle='#fff';g.lineWidth=5;g.beginPath();g.arc(n.x,n.y,n.r,0,7);g.stroke()}}g.globalAlpha=1;
  if(player&&mode!=='title'){drawDrones();drawPlayer()}
  drawFinale();
- if(player&&mode!=='title'){
-  g.textAlign='left';g.textBaseline='alphabetic';g.fillStyle='#20193dbb';g.fillRect(12,H-48,250,36);g.font='900 11px sans-serif';
-  g.fillStyle=WEAPONS.shot.color;g.fillText('S '+player.levels.shot,20,H-27);g.fillStyle=WEAPONS.laser.color;g.fillText('L '+player.levels.laser,78,H-27);g.fillStyle=WEAPONS.missile.color;g.fillText('M '+player.levels.missile,136,H-27);g.fillStyle='#fff';g.fillText('CUSTOM',190,H-27);
-  g.fillStyle='#fff';g.font='900 13px sans-serif';g.fillText('LIFE',270,H-27);for(let i=0;i<player.hp;i++)heart(314+i*16,H-29,9,'#ff7298');
-  g.fillText('B',398,H-27);for(let i=0;i<player.bombs;i++){g.fillStyle='#fff1a6';g.beginPath();g.arc(416+i*12,H-32,4.5,0,7);g.fill()}
-  if(player.power>0){g.fillStyle='#fff36b';g.font='900 11px sans-serif';g.fillText('STAR '+player.power.toFixed(1)+(player.starBombReady?'  BOMB×1.5':''),270,H-54)}
-  if(skillDodges>0){g.fillStyle='#8ffaff';g.font='900 11px sans-serif';g.fillText('BREAK '+skillDodges,20,H-55)}g.fillStyle=player.drones.length?'#fff36b':'#c9f8ff';g.font='900 10px sans-serif';g.fillText(player.drones.length?'FNL ACTIVE':'FNL '+Math.min(999,Math.floor(player.funnelGauge))+'/999',112,H-55)
- }
  if(combo>1){g.fillStyle='#fff';g.font='900 24px sans-serif';g.textAlign='left';g.fillText(combo+(combo===999?' MAX':'')+' COMBO',20,42);g.fillStyle='#ffffff44';g.fillRect(20,51,150,5);g.fillStyle=STAGES[stage].accent;g.fillRect(20,51,150*(comboClock/3),5)}
  if(banner>0){g.fillStyle='#251c4ddd';g.fillRect(0,H/2-72,W,144);g.fillStyle='#fff';g.textAlign='center';g.font='700 14px sans-serif';g.fillText(bossMade?'BOSS — '+STAGES[stage].boss:'STAGE '+(stage+1),W/2,H/2-29);g.font='900 24px sans-serif';g.fillText(bossMade?'「ここから先は、夜のものだ」':STAGES[stage].name,W/2,H/2+4);g.font='500 12px sans-serif';g.fillText(STAGES[stage].story,W/2,H/2+37)}
  for(const q of callouts){g.globalAlpha=Math.min(1,q.life*2);g.textAlign='center';g.font='900 20px sans-serif';if(q.bubble){const bw=Math.min(300,Math.max(112,g.measureText(q.text).width+28)),bh=38,bx=clamp(q.x-bw/2,10,W-bw-10),by=q.y-27,cx=clamp(q.x,bx+18,bx+bw-18);g.fillStyle='#fffdf3f2';g.strokeStyle=q.color;g.lineWidth=3;g.beginPath();if(g.roundRect)g.roundRect(bx,by,bw,bh,12);else g.rect(bx,by,bw,bh);g.fill();g.stroke();g.beginPath();g.moveTo(cx-8,by+bh-1);g.lineTo(cx,by+bh+11);g.lineTo(cx+9,by+bh-1);g.closePath();g.fill();g.stroke();g.fillStyle='#332044';g.fillText(q.text,bx+bw/2,by+25)}else{g.lineWidth=5;g.strokeStyle='#251c4d';g.strokeText(q.text,q.x,q.y);g.fillStyle=q.color;g.fillText(q.text,q.x,q.y)}}g.globalAlpha=1;
  g.restore();if(flash){g.fillStyle='#fff';g.globalAlpha=flash;g.fillRect(0,0,W,H);g.globalAlpha=1}
 }
 function loop(now){const dt=Math.min((now-last)/1000||0,.033);last=now;update(dt);draw();requestAnimationFrame(loop)}
-addEventListener('keydown',e=>{key.add(e.code);if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','KeyB','KeyP'].includes(e.code))e.preventDefault();if(e.code==='KeyB'&&!e.repeat)bomb();if(e.code==='KeyP'&&!e.repeat&&(mode==='play'||mode==='paused'))togglePause();if(e.code==='Enter'&&mode!=='play'&&mode!=='paused')start()});
+addEventListener('keydown',e=>{key.add(e.code);if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','KeyB','KeyP'].includes(e.code))e.preventDefault();if(e.code==='KeyB'&&!e.repeat)bomb();if(e.code==='KeyP'&&!e.repeat&&(mode==='play'||mode==='paused'))togglePause();if(e.code==='Enter'&&mode==='continue')continueGame();else if(e.code==='Enter'&&mode!=='play'&&mode!=='paused')start()});
 addEventListener('keyup',e=>key.delete(e.code));
 function move(e){
  if(mode!=='play')return;
@@ -455,13 +459,14 @@ function move(e){
   player.y=clamp((e.clientY-r.top)*H/r.height,28,H-22);
  }
 }
-document.addEventListener('pointerdown',e=>{if(e.target===bombBtn||e.target===btn||e.target.closest('.select'))return;if(e.pointerType==='touch'){activeTouches.add(e.pointerId);if(activeTouches.size>=2&&(mode==='play'||mode==='paused')){e.preventDefault();togglePause();lastTapTime=0;return}if(mode!=='play')return;const now=Date.now(),near=Math.hypot(e.clientX-lastTapX,e.clientY-lastTapY)<55;if(now-lastTapTime<310&&near){bomb();lastTapTime=0}else{lastTapTime=now;lastTapX=e.clientX;lastTapY=e.clientY}}if(mode!=='play')return;e.preventDefault();if(activePointer!==null)return;pointer=true;activePointer=e.pointerId;dragX=e.clientX;dragY=e.clientY;if(e.target.setPointerCapture)try{e.target.setPointerCapture(e.pointerId)}catch(_){}if(e.pointerType!=='touch'&&c.contains(e.target))move(e)},{passive:false});
+document.addEventListener('pointerdown',e=>{if(e.target===bombBtn||e.target===btn||e.target===endBtn||e.target.closest('.select'))return;if(e.pointerType==='touch'){activeTouches.add(e.pointerId);if(activeTouches.size>=2&&(mode==='play'||mode==='paused')){e.preventDefault();togglePause();lastTapTime=0;return}if(mode!=='play')return;const now=Date.now(),near=Math.hypot(e.clientX-lastTapX,e.clientY-lastTapY)<55;if(now-lastTapTime<310&&near){bomb();lastTapTime=0}else{lastTapTime=now;lastTapX=e.clientX;lastTapY=e.clientY}}if(mode!=='play')return;e.preventDefault();if(activePointer!==null)return;pointer=true;activePointer=e.pointerId;dragX=e.clientX;dragY=e.clientY;if(e.target.setPointerCapture)try{e.target.setPointerCapture(e.pointerId)}catch(_){}if(e.pointerType!=='touch'&&c.contains(e.target))move(e)},{passive:false});
 document.addEventListener('pointermove',e=>{if(pointer&&e.pointerId===activePointer){e.preventDefault();move(e)}},{passive:false});
 document.addEventListener('pointerup',e=>{activeTouches.delete(e.pointerId);if(e.pointerId===activePointer){pointer=false;activePointer=null}});
 document.addEventListener('pointercancel',e=>{activeTouches.delete(e.pointerId);if(e.pointerId===activePointer){pointer=false;activePointer=null}});
 c.addEventListener('contextmenu',e=>e.preventDefault());
 bombBtn.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();bomb()});
-btn.addEventListener('click',()=>mode==='paused'?togglePause():start());
+btn.addEventListener('click',()=>mode==='continue'?continueGame():mode==='paused'?togglePause():start());
+endBtn.addEventListener('click',endContinue);
 stage6Btn.addEventListener('click',()=>{if(stage6Unlocked)startStage6()});
 document.querySelectorAll('[data-difficulty]').forEach(el=>el.addEventListener('click',()=>{if(el.dataset.difficulty==='hell'&&!hellUnlocked)return;selectedDifficulty=el.dataset.difficulty;document.querySelectorAll('[data-difficulty]').forEach(x=>x.classList.toggle('active',x===el));hud()}));
 document.querySelectorAll('[data-ship]').forEach(el=>el.addEventListener('click',()=>{selectedShip=el.dataset.ship;document.querySelectorAll('[data-ship]').forEach(x=>x.classList.toggle('active',x===el));hud()}));

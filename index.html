@@ -20,6 +20,19 @@
       <div><span>COMBO</span><strong id="combo">× 001</strong></div>
     </header>
 
+    <section class="loadout-hud" aria-label="武器と残機の状態">
+      <div class="weapon-ranks">
+        <span class="shot-rank">SHOT <b id="shot-rank">1</b></span>
+        <span class="laser-rank">LASER <b id="laser-rank">0</b></span>
+        <span class="missile-rank">MISSILE <b id="missile-rank">0</b></span>
+      </div>
+      <span id="special-status" class="special-status">FNL 1/999</span>
+      <div class="stock-status">
+        <span>LIFE <b id="life-stock">♥♥♥♥♥</b></span>
+        <span>BOMB <b id="bomb-stock">●●●○○</b></span>
+      </div>
+    </section>
+
     <div class="canvas-wrap">
       <canvas id="game" width="480" height="720" aria-label="縦スクロールシューティングゲーム"></canvas>
       <section id="overlay" class="overlay">
@@ -31,7 +44,10 @@
           <div class="select-group ships"><b>CHARACTER</b><button class="select active" data-ship="clione">ルミ<br><small>万能クリオネ</small></button><button class="select" data-ship="ribbon">メルティ<br><small>高速リボン</small></button><button class="select" data-ship="hammer">ガンガ<br><small>重撃宇宙人</small></button></div>
           <button id="stage6-retry" class="stage6-retry" type="button" hidden>HELL CHECKPOINT　STAGE 6から再戦</button>
         </div>
-        <button id="start-button" type="button">はじめる</button>
+        <div class="continue-actions">
+          <button id="start-button" type="button">はじめる</button>
+          <button id="end-button" type="button" hidden>撤退: End Game</button>
+        </div>
         <p class="controls">ドラッグ移動・ダブルタップでBOMB<br>2本指でPAUSE／PCはBキーでBOMB</p>
       </section>
       <button id="bomb-button" class="bomb-button" type="button" aria-label="ボムを使う">BOMB</button>
@@ -39,10 +55,10 @@
 
     <footer>
       <span id="stage-label">STAGE 1</span>
-      <span id="status-label">♥♥♥　BOMB ●●●</span>
+      <span id="status-label">CONTINUE 0/2</span>
     </footer>
   </main>
-  <script src="game.js?v=19"></script>
+  <script src="game.js?v=21"></script>
   <script>
     if ("serviceWorker" in navigator) {
       addEventListener("load", async () => {

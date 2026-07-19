@@ -33,7 +33,7 @@ body {
   width: min(100vw, 600px);
   height: 100dvh;
   display: grid;
-  grid-template-rows: 32px minmax(0, 1fr) 24px;
+  grid-template-rows: 32px 34px minmax(0, 1fr) 24px;
   padding:
     max(2px, env(safe-area-inset-top))
     max(2px, env(safe-area-inset-right))
@@ -55,13 +55,38 @@ header div:last-child { text-align: right; }
 header strong { color: #fff; font: 700 17px/1 monospace; letter-spacing: .06em; }
 h1 { margin: 0; color: var(--cyan); font-size: 12px; letter-spacing: .18em; text-shadow: 0 0 15px #41f4ffaa; }
 
+.loadout-hud {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  padding: 3px 8px;
+  border: 1px solid #61f5ff35;
+  border-radius: 8px 8px 3px 3px;
+  color: #dce5ff;
+  background: linear-gradient(90deg,#101735e8,#201338e8,#0c2033e8);
+  box-shadow: inset 0 0 18px #61f5ff0d;
+  font: 800 9px/1.2 monospace;
+  letter-spacing: .035em;
+}
+.weapon-ranks, .stock-status { display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+.stock-status { justify-content: flex-end; }
+.loadout-hud b { font-size: 12px; }
+.shot-rank { color: #fff3a6; }
+.laser-rank { color: #6ff8ff; }
+.missile-rank { color: #ff8bab; }
+#life-stock { color: #ff7298; letter-spacing: 0; }
+#bomb-stock { color: #fff1a6; letter-spacing: 0; }
+.special-status { color: #c9f8ff; text-align: center; white-space: nowrap; }
+
 .canvas-wrap {
   position: relative;
   min-height: 0;
   aspect-ratio: 2 / 3;
   justify-self: center;
   align-self: start;
-  width: min(100%, calc((100dvh - 58px) * 2 / 3));
+  width: min(100%, calc((100dvh - 92px) * 2 / 3));
   height: auto;
   max-height: 100%;
   border: 1px solid #61f5ff66;
@@ -123,9 +148,11 @@ canvas {
 .stage6-retry[hidden] { display: none !important; }
 .game-select.locked { display: none; }
 
-#start-button {
+.continue-actions { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.continue-actions button[hidden] { display: none !important; }
+#start-button, #end-button {
   margin: 9px 0 4px;
-  padding: 14px 34px;
+  padding: 14px 24px;
   min-height: 48px;
   color: #041018;
   border: 0;
@@ -135,6 +162,7 @@ canvas {
   letter-spacing: .12em;
   box-shadow: 0 0 25px #41f4ff88;
 }
+#end-button { color: #fff; background: #71294d; box-shadow: 0 0 20px #ff4d8a55; }
 
 .controls { font: 11px/1.8 monospace; opacity: .8; }
 footer { padding-inline: 4px; }
@@ -169,9 +197,12 @@ footer { padding-inline: 4px; }
 }
 
 @media (max-width: 390px), (max-height: 700px) {
-  .game-shell { grid-template-rows: 32px minmax(0, 1fr) 24px; }
+  .game-shell { grid-template-rows: 32px 32px minmax(0, 1fr) 24px; }
   header strong { font-size: 15px; }
   h1 { font-size: 10px; }
+  .loadout-hud { gap: 4px; padding-inline: 5px; font-size: 8px; }
+  .weapon-ranks, .stock-status { gap: 4px; }
+  .loadout-hud b { font-size: 10px; }
   .bomb-button { width: 56px; height: 56px; right: 9px; bottom: 44px; }
   footer { font-size: 8px; }
 }
