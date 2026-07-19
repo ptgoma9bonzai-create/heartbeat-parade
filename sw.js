@@ -1,9 +1,9 @@
-const CACHE = "heartbeat-parade-v18";
+const CACHE = "heartbeat-parade-v19";
 const APP = [
   "./",
   "./index.html",
   "./style.css",
-  "./game.js?v=18",
+  "./game.js?v=19",
   "./manifest.webmanifest",
   "./icon.svg"
 ];
